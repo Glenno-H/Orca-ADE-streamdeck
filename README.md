@@ -16,7 +16,7 @@ and jump straight to them. Unofficial; not made by Stably.
 | **Show Orca** | Brings the Orca window to the front. |
 | **Approve** / **Deny** | Answer the permission request of the agent you **last jumped to from the deck** (its name is on the key). Approve allows once, never "always". Green/red while there's a request; dim otherwise. Before answering, the plugin re-checks that the same request is still waiting. Chat agents only for now. |
 
-**Key text** (any key's settings): **Large** (default) shows a big worktree name, one line of the chat's title (so two chats in one worktree are told apart) and a one-word state (YOUR GO, ALLOW?, WORKING, DONE, SEEN), with dark text on amber for contrast. **Detailed** is smaller and shows more of the chat title.
+**Key text** (any key's settings): **Large** (default) shows a big worktree name, one line of the chat's title (so two chats in one worktree are told apart) and a one-word state (YOUR GO, ALLOW?, WORKING, DONE, SEEN), with dark text on amber for contrast. **State word → Hide** drops the state word and lets the colour say it, giving the name and two lines of chat title more room. **Detailed** is smaller and shows more of the chat title.
 
 ## How it connects
 

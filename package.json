@@ -1,6 +1,6 @@
 {
   "name": "orca-deck",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": true,
   "description": "Free, open-source Stream Deck plugin for Orca (Windows): see which agents need you, jump to them, approve or deny, and watch your usage limits.",
   "license": "MIT",

@@ -76,3 +76,11 @@ test("large layout: big name, one-word state, dark text on amber", async () => {
 	assert.ok(detailed.includes("Fix the"));
 	assert.ok(svg(nextKeyImage(3)).includes(">3<"));
 });
+
+test("hiding the state word gives the name and two lines of title the whole key", async () => {
+	const { agentKeyImage } = await import("../src/render");
+	const svg = (url: string) => decodeURIComponent(url.slice("data:image/svg+xml,".length));
+	const noState = svg(agentKeyImage(agent({ title: "Prod drafter repeating drafts" }), false, "large", false));
+	assert.ok(!noState.includes("WORKING") && noState.includes("Prod") && noState.includes("drafter"));
+	assert.ok(svg(agentKeyImage(agent(), false, "large", true)).includes("WORKING"));
+});

@@ -125,6 +125,24 @@ export function wrapName(name: string, width: number, lines: number): string[] {
  * Large layout: just the worktree name (big, up to two lines) and a one-word state. The chat title
  * is left out; colour does most of the talking.
  */
+/**
+ * Large layout without the state word: colour alone tells the state, so the name and two lines of
+ * the chat title get the whole key.
+ */
+function largeAgentKeyImageNoState(agent: Agent, dim: boolean): string {
+	const background = agentBackground(agent, dim);
+	const color = textColorOn(background);
+	const oneLine = wrapName(agent.worktreeName, 8, 1);
+	const fitsOne = oneLine.length === 1 && !oneLine[0]!.endsWith("…");
+	const lines = fitsOne ? oneLine : wrapName(agent.worktreeName, 9, 2);
+	const nameSize = fitsOne ? 28 : 23;
+	const nameTop = fitsOne || lines.length === 1 ? 44 : 32;
+	const name = lines.map((line, i) => text(line, nameTop + i * (nameSize + 4), nameSize, { color, weight: 800 })).join("");
+	// Bold 19 px fits ~10 characters a line.
+	const title = wrap(agent.title, 10, 2).map((line, i) => text(line, 104 + i * 24, 19, { color, weight: 700 })).join("");
+	return svgUrl(name + title, background);
+}
+
 function largeAgentKeyImage(agent: Agent, dim: boolean): string {
 	const background = agentBackground(agent, dim);
 	const color = textColorOn(background);
@@ -143,8 +161,8 @@ function largeAgentKeyImage(agent: Agent, dim: boolean): string {
 	return svgUrl(name + titleLine + band + text(state, 132, state.length > 7 ? 22 : 25, { weight: 800 }), background);
 }
 
-export function agentKeyImage(agent: Agent, dim = false, size: KeyTextSize = "large"): string {
-	if (size === "large") return largeAgentKeyImage(agent, dim);
+export function agentKeyImage(agent: Agent, dim = false, size: KeyTextSize = "large", showState = true): string {
+	if (size === "large") return showState ? largeAgentKeyImage(agent, dim) : largeAgentKeyImageNoState(agent, dim);
 	const name = fitLine(agent.worktreeName, 19, 13);
 	const title = wrap(agent.title, 15, 3);
 	const lines = title.map((line, i) => text(line, 62 + i * 21, 17, { weight: 500 })).join("");
