@@ -23,6 +23,8 @@ export type GlobalSettings = JsonObject & {
 	boardShow?: BoardShow;
 	/** Large (default): big name and one-word state. Detailed: smaller text plus the chat title. */
 	keyText?: KeyTextSize;
+	/** Large agent keys: show the state word (WORKING, DONE…) or let colour alone say it. Default: show. */
+	stateWord?: "show" | "hide";
 };
 export type AgentSettings = JsonObject & {
 	mode?: "auto" | "pinned";
@@ -283,7 +285,7 @@ class Controller {
 			const agent = shown.get(k.action.id);
 			let image: string;
 			if (!connected) image = offlineKeyImage(STATUS_LABEL[this.#status as Exclude<Status, "connected">]);
-			else if (agent) image = agentKeyImage(agent, pulsing && agent.needsYou && !this.#pulseOn, this.#textSize());
+			else if (agent) image = agentKeyImage(agent, pulsing && agent.needsYou && !this.#pulseOn, this.#textSize(), this.#settings.stateWord !== "hide");
 			else if (k.settings.mode === "pinned") image = emptyKeyImage(k.settings.pin ? (k.settings.pinLabel ?? "Quiet") : "Pick a worktree", this.#textSize());
 			// Spare keys stay plain; only an entirely empty board says so.
 			else image = emptyKeyImage(boardEmpty ? (this.#settings.boardShow === "all" ? "No agents" : this.#settings.boardShow === "waiting" ? "Nothing waiting" : "All quiet") : "", this.#textSize());
