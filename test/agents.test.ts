@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { agentForWorktree, agentsFromSnapshots, assignAutoSlots, rankForAuto, worktreeNameFromId, type Agent } from "../src/orca/agents";
+import { agentForWorktree, agentsFromSnapshots, orderBoard, rankForAuto, worktreeNameFromId, type Agent } from "../src/orca/agents";
 
 const chat = (id: string, state: string, updatedAt: number, extra: Record<string, unknown> = {}) => ({
 	type: "agent-session",
@@ -63,28 +63,27 @@ const agent = (key: string, state: Agent["state"], updatedAt = 0): Agent => ({
 	state, needsYou: state === "blocked" || state === "waiting", interrupted: false, unread: false, updatedAt,
 });
 
-test("auto keys keep their agent while it still deserves a key", () => {
-	const first = assignAutoSlots(["k1", "k2"], rankForAuto([agent("A", "working", 2), agent("B", "working", 1)]), new Map());
-	assert.equal(first.get("k1")?.key, "A");
-	assert.equal(first.get("k2")?.key, "B");
-	// B gets newer than A: the ranking flips, but the keys stay put.
-	const prev = new Map([...first].map(([slot, a]) => [slot, a!.key]));
-	const second = assignAutoSlots(["k1", "k2"], rankForAuto([agent("A", "working", 2), agent("B", "working", 3)]), prev);
-	assert.equal(second.get("k1")?.key, "A");
-	assert.equal(second.get("k2")?.key, "B");
+test("the board has no gaps: when a job leaves, the rest slide up", () => {
+	const first = orderBoard(rankForAuto([agent("A", "working", 3), agent("B", "working", 2), agent("C", "working", 1)]), []);
+	assert.deepEqual(first.map((a) => a.key), ["A", "B", "C"]);
+	// A finishes and leaves; B and C move up rather than leaving a hole.
+	const second = orderBoard(rankForAuto([agent("B", "working", 9), agent("C", "working", 1)]), first.map((a) => a.key));
+	assert.deepEqual(second.map((a) => a.key), ["B", "C"]);
 });
 
-test("an agent that needs you bumps a finished one off a full deck", () => {
-	const prev = new Map([["k1", "A"], ["k2", "B"]]);
-	const next = assignAutoSlots(["k1", "k2"], rankForAuto([agent("A", "done", 5), agent("B", "working", 1), agent("C", "blocked", 9)]), prev);
-	assert.equal(next.get("k2")?.key, "B");
-	assert.equal(next.get("k1")?.key, "C");
+test("jobs keep their place when their order would otherwise change", () => {
+	// C becomes the most recently updated, but stays behind A and B; newcomers join at the end.
+	const next = orderBoard(rankForAuto([agent("A", "working", 1), agent("B", "working", 2), agent("C", "working", 9), agent("D", "working", 5)]), ["A", "B", "C"]);
+	assert.deepEqual(next.map((a) => a.key), ["A", "B", "C", "D"]);
 });
 
-test("pinned agents are left out of auto keys, and empty keys stay empty", () => {
-	const next = assignAutoSlots(["k1", "k2"], [agent("A", "working")], new Map(), new Set(["A"]));
-	assert.equal(next.get("k1"), undefined);
-	assert.equal(next.get("k2"), undefined);
+test("a job that starts needing you moves to the front", () => {
+	const next = orderBoard(rankForAuto([agent("A", "working", 1), agent("B", "working", 2), agent("C", "waiting", 3)]), ["A", "B", "C"]);
+	assert.deepEqual(next.map((a) => a.key), ["C", "A", "B"]);
+});
+
+test("pinned agents are left off the board", () => {
+	assert.deepEqual(orderBoard([agent("A", "working"), agent("B", "working")], [], new Set(["A"])).map((a) => a.key), ["B"]);
 });
 
 test("a pinned worktree shows its most urgent agent", () => {

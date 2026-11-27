@@ -146,41 +146,26 @@ export function rankForAuto(agents: readonly Agent[]): Agent[] {
 }
 
 /**
- * Hands ranked agents to Auto keys. A key keeps its agent while that agent is still among the
- * ones that deserve a key, so keys don't jump around on every update; free keys take the
- * highest-ranked agents that aren't shown yet. `exclude` holds agents already on Pinned keys.
- * @param slots Auto key ids in reading order (device, row, column).
+ * Orders the Auto-key board with no gaps. Agents that need you come first; everyone keeps their
+ * previous place otherwise, so when a job leaves the board the ones after it just slide up one
+ * key, and new jobs join at the end of their group. `exclude` holds agents already on Pinned keys.
+ * @param ranked Board agents in rank order (used to place newcomers).
+ * @param previousOrder Agent keys in the order the board showed them last time.
  */
-export function assignAutoSlots(
-	slots: readonly string[],
-	ranked: readonly Agent[],
-	previous: ReadonlyMap<string, string>,
-	exclude: ReadonlySet<string> = new Set(),
-): Map<string, Agent | undefined> {
+export function orderBoard(ranked: readonly Agent[], previousOrder: readonly string[], exclude: ReadonlySet<string> = new Set()): Agent[] {
 	const candidates = ranked.filter((a) => !exclude.has(a.key));
-	const deserving = candidates.slice(0, slots.length);
 	const byKey = new Map(candidates.map((a) => [a.key, a]));
-	const result = new Map<string, Agent | undefined>();
-	const taken = new Set<string>();
-
-	// A needs-you agent outranks a sticky finished one: let urgent agents bump stale keys.
-	const deservingKeys = new Set(deserving.map((a) => a.key));
-	for (const slot of slots) {
-		const prevKey = previous.get(slot);
-		const agent = prevKey ? byKey.get(prevKey) : undefined;
-		if (agent && deservingKeys.has(agent.key)) {
-			result.set(slot, agent);
-			taken.add(agent.key);
-		}
-	}
-	const queue = deserving.filter((a) => !taken.has(a.key));
-	for (const slot of slots) {
-		if (result.has(slot)) continue;
-		const next = queue.shift();
-		result.set(slot, next);
-		if (next) taken.add(next.key);
-	}
-	return result;
+	const kept = previousOrder.flatMap((key) => {
+		const agent = byKey.get(key);
+		return agent ? [agent] : [];
+	});
+	const seen = new Set(kept.map((a) => a.key));
+	const order = [...kept, ...candidates.filter((a) => !seen.has(a.key))];
+	// Stable sort: needs-you agents move to the front, everything else keeps its relative order.
+	return order
+		.map((agent, i) => ({ agent, i }))
+		.sort((x, y) => Number(y.agent.needsYou) - Number(x.agent.needsYou) || x.i - y.i)
+		.map(({ agent }) => agent);
 }
 
 /** The agent a Pinned key shows: the most urgent agent in that worktree. */
