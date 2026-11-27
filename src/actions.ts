@@ -13,6 +13,7 @@ import type { JsonObject } from "@elgato/utils";
 import { type AgentSettings, controller, type UsageSettings } from "./controller";
 
 export const PLUGIN_UUID = "au.gkw.orcadeck";
+const HELP_URL = "https://github.com/Glenno-H/Orca-ADE-streamdeck#install-and-pair-windows";
 
 /** Messages every settings page can send: pairing, forgetting, and asking for the current status. */
 async function handleCommon(payload: JsonObject | undefined): Promise<void> {
@@ -21,6 +22,9 @@ async function handleCommon(payload: JsonObject | undefined): Promise<void> {
 		await streamDeck.ui.sendToPropertyInspector({ event: "paired", error: error ?? "" });
 	} else if (payload?.event === "forget") {
 		await controller.forget();
+	} else if (payload?.event === "help") {
+		await streamDeck.system.openUrl(HELP_URL);
+		return;
 	}
 	await streamDeck.ui.sendToPropertyInspector(controller.describe());
 }

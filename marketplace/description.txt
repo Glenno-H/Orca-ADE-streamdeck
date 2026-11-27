@@ -1,0 +1,14 @@
+See which of your Orca coding agents need you, right on your Stream Deck. Keys light up amber when an agent wants permission or a reply, blue while it works and green when it finishes. Press a key to jump straight to that agent's chat in Orca.
+
+What you get:
+- A live board: drop as many Agent keys as you like and they fill with your agents, the ones that need you first, with no gaps.
+- Approve or Deny keys that answer the agent's permission request (allow once only).
+- A Next Waiting key that counts the agents waiting on you and steps through them.
+- Usage keys for the Claude and Codex accounts signed in to Orca on this PC.
+- Big, easy-to-read keys, with an option to hide the state word and let colour do the talking.
+
+Pairs with the Orca desktop app the same way Orca's phone app does, end-to-end encrypted, and sees agents on every host the app is connected to. Collects no data.
+
+Requires: Windows 10 or later, Stream Deck 7.1 or later, and the Orca desktop app running on the same PC.
+
+Unofficial; not made by or affiliated with Stably. Free and open source (MIT). Built with AI assistance.

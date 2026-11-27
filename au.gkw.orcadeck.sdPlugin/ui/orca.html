@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Orca Deck</title>
+	<title>Orca ADE</title>
 	<script src="sdpi-components.js"></script>
 	<style>
 	.note { font-size: 9pt; color: #9a9a9a; line-height: 1.4; padding-top: 4px; }
@@ -77,6 +77,9 @@
 	<sdpi-item label="Orca address">
 		<sdpi-textfield setting="address" global placeholder="Blank = this PC"></sdpi-textfield>
 	</sdpi-item>
+	<sdpi-item label="">
+		<a href="#" id="help" class="note">Setup help</a>
+	</sdpi-item>
 	<div id="forget-box" class="hidden">
 		<sdpi-item label="">
 			<button id="forget" class="sdpi-item-value">Forget pairing</button>
@@ -138,6 +141,7 @@
 		client.send("sendToPlugin", { event: "pair", code: $("code").value });
 	});
 	$("forget").addEventListener("click", () => client.send("sendToPlugin", { event: "forget" }));
+	$("help").addEventListener("click", (e) => { e.preventDefault(); client.send("sendToPlugin", { event: "help" }); });
 	client.send("sendToPlugin", { event: "status" });
 </script>
 </body>

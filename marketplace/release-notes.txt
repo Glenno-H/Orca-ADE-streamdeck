@@ -1,0 +1,5 @@
+First Marketplace release.
+- Agent keys form a live, gap-free board of your Orca agents; press to jump to the agent's chat.
+- Approve / Deny keys for permission requests (allow once only).
+- Next Waiting and Usage keys.
+- Large, easy-to-read keys, with an option to hide the state word.
