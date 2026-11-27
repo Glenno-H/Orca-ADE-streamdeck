@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Orca Deck</title>
+	<script src="sdpi-components.js"></script>
+	<style>
+	.note { font-size: 9pt; color: #9a9a9a; line-height: 1.4; padding-top: 4px; }
+	.error { color: #ff8a80; }
+	#status { font-weight: 600; }
+	.hidden { display: none; }
+	textarea#code { width: 100%; min-height: 54px; box-sizing: border-box; font-family: monospace; font-size: 8pt; background: #3d3d3d; color: #d8d8d8; border: 0; border-radius: 3px; padding: 4px; }
+</style>
+</head>
+<body>
+	<div id="agent-only" class="hidden">
+		<sdpi-item label="Shows">
+			<sdpi-select setting="mode" default="auto">
+				<option value="auto">Auto: part of the live board</option>
+				<option value="pinned">One worktree</option>
+			</sdpi-select>
+		</sdpi-item>
+		<sdpi-item label="Board shows" id="board-row">
+			<sdpi-select setting="boardShow" global default="active">
+				<option value="active">Waiting and working</option>
+				<option value="waiting">Only waiting on me</option>
+				<option value="all">Everything (incl. finished)</option>
+			</sdpi-select>
+		</sdpi-item>
+		<sdpi-item label="Worktree" id="pin-row">
+			<select id="pin" class="sdpi-item-value"></select>
+		</sdpi-item>
+	</div>
+
+	<div id="usage-only" class="hidden">
+		<sdpi-item label="Provider">
+			<sdpi-select setting="provider" default="claude">
+				<option value="claude">Claude</option>
+				<option value="codex">Codex</option>
+			</sdpi-select>
+		</sdpi-item>
+	</div>
+
+	<sdpi-item label="Key text">
+		<sdpi-select setting="keyText" global default="large">
+			<option value="large">Large (easier to read)</option>
+			<option value="detailed">Detailed (smaller, with chat title)</option>
+		</sdpi-select>
+	</sdpi-item>
+
+	<sdpi-item label="Waiting alert">
+		<sdpi-select setting="alertStyle" global default="key">
+			<option value="key">Key turns amber</option>
+			<option value="pulse">Key pulses</option>
+		</sdpi-select>
+	</sdpi-item>
+
+	<sdpi-item label="Orca">
+		<div><span id="status">…</span><div id="detail" class="note"></div></div>
+	</sdpi-item>
+
+	<div id="pair-box">
+		<sdpi-item label="Pairing code">
+			<textarea id="code" placeholder="orca://pair?code=…  (Orca → pair a phone → copy code)"></textarea>
+		</sdpi-item>
+		<sdpi-item label="">
+			<button id="pair" class="sdpi-item-value">Pair</button>
+		</sdpi-item>
+		<sdpi-item label=""><div id="pair-error" class="note error"></div></sdpi-item>
+	</div>
+	<sdpi-item label="Orca address">
+		<sdpi-textfield setting="address" global placeholder="Blank = this PC"></sdpi-textfield>
+	</sdpi-item>
+	<div id="forget-box" class="hidden">
+		<sdpi-item label="">
+			<button id="forget" class="sdpi-item-value">Forget pairing</button>
+		</sdpi-item>
+	</div>
+
+	<script>
+	const client = SDPIComponents.streamDeckClient;
+	const $ = (id) => document.getElementById(id);
+	let settings = {};
+
+	client.getConnectionInfo().then((info) => {
+		const isAgent = info.actionInfo.action.endsWith(".agent");
+		$("agent-only").classList.toggle("hidden", !isAgent);
+		$("usage-only").classList.toggle("hidden", !info.actionInfo.action.endsWith(".usage"));
+		settings = info.actionInfo.payload.settings || {};
+		showPin();
+	});
+	client.didReceiveSettings.subscribe((ev) => { settings = ev.payload.settings || {}; showPin(); });
+
+	function showPin() {
+		$("pin-row").classList.toggle("hidden", settings.mode !== "pinned");
+		$("board-row").classList.toggle("hidden", settings.mode === "pinned");
+		if (settings.pin && ![...$("pin").options].some((o) => o.value === settings.pin)) {
+			$("pin").add(new Option(settings.pinLabel || "Saved worktree", settings.pin));
+		}
+		$("pin").value = settings.pin || "";
+	}
+
+	$("pin").addEventListener("change", () => {
+		const opt = $("pin").selectedOptions[0];
+		settings = { ...settings, pin: opt.value, pinLabel: opt.textContent };
+		client.setSettings(settings);
+	});
+
+	client.sendToPropertyInspector.subscribe((msg) => {
+		const p = msg.payload || {};
+		if (p.event === "paired") {
+			$("pair-error").textContent = p.error || "";
+			if (!p.error) $("code").value = "";
+		}
+		if (p.event !== "status") return;
+		$("status").textContent = p.label;
+		$("detail").textContent = [p.hosts ? `Hosts: ${p.hosts}` : "", p.error && p.status !== "connected" ? p.error : ""].filter(Boolean).join(" · ");
+		const paired = p.status !== "unpaired";
+		$("pair-box").classList.toggle("hidden", paired && p.status !== "unauthorized");
+		$("forget-box").classList.toggle("hidden", !paired);
+		const pin = $("pin");
+		const keep = settings.pin;
+		pin.innerHTML = "";
+		pin.add(new Option("Choose…", ""));
+		for (const w of p.worktrees || []) pin.add(new Option(w.label, w.value));
+		showPin();
+		if (keep) pin.value = keep;
+	});
+
+	$("pair").addEventListener("click", () => {
+		$("pair-error").textContent = "";
+		client.send("sendToPlugin", { event: "pair", code: $("code").value });
+	});
+	$("forget").addEventListener("click", () => client.send("sendToPlugin", { event: "forget" }));
+	client.send("sendToPlugin", { event: "status" });
+</script>
+</body>
+</html>

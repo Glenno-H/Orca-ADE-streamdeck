@@ -1,0 +1,48 @@
+{
+  "name": "orca-deck",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Free, open-source Stream Deck plugin for Orca (Windows): see which agents need you, jump to them, approve or deny, and watch your usage limits.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "assets": "node scripts/build-assets.mjs",
+    "build": "npm run assets && rollup -c",
+    "watch": "rollup -c -w",
+    "test": "node --import tsx --test test/*.test.ts",
+    "validate": "streamdeck validate au.gkw.orcadeck.sdPlugin",
+    "pack": "npm run build && streamdeck pack au.gkw.orcadeck.sdPlugin --output dist --force",
+    "check": "tsc -p . && npm test"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^3.0.6",
+    "koffi": "^2.16.4",
+    "tweetnacl": "^1.0.3",
+    "ws": "^8.23.0"
+  },
+  "devDependencies": {
+    "@elgato/cli": "^1.10.5",
+    "@elgato/schemas": "^0.6.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.2",
+    "@rollup/plugin-typescript": "^12.3.1",
+    "@tsconfig/node24": "^24.0.6",
+    "@types/node": "^24.19.4",
+    "@types/ws": "^8.18.2",
+    "rollup": "^4.68.8",
+    "tslib": "^2.9.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "homepage": "https://github.com/Glenno-H/Orca-ADE-streamdeck",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Glenno-H/Orca-ADE-streamdeck.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Glenno-H/Orca-ADE-streamdeck/issues"
+  }
+}
