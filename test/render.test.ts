@@ -70,7 +70,8 @@ test("large layout: big name, one-word state, dark text on amber", async () => {
 	assert.equal(bigStateLabel(agent({ state: "blocked", needsYou: true })), "ALLOW?");
 	assert.equal(bigStateLabel(agent({ state: "done", unread: false })), "SEEN");
 	const waiting = svg(agentKeyImage(agent({ state: "waiting", needsYou: true }), false, "large"));
-	assert.ok(waiting.includes("YOUR GO") && waiting.includes("#111111") && !waiting.includes("Fix the"));
+	// The chat title is on the key too (shortened), so two chats in one worktree differ.
+	assert.ok(waiting.includes("YOUR GO") && waiting.includes("#111111") && waiting.includes("Fix the"));
 	const detailed = svg(agentKeyImage(agent(), false, "detailed"));
 	assert.ok(detailed.includes("Fix the"));
 	assert.ok(svg(nextKeyImage(3)).includes(">3<"));
