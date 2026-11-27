@@ -3,7 +3,7 @@
 import streamDeck, { type KeyAction } from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 
-import { agentForWorktree, assignAutoSlots, filterForBoard, type Agent, type BoardShow } from "./orca/agents";
+import { agentForWorktree, filterForBoard, orderBoard, type Agent, type BoardShow } from "./orca/agents";
 import { OrcaConnection } from "./orca/connection";
 import { fetchPendingApproval, respondToApproval, type PendingApproval } from "./orca/approvals";
 import { CLIENT_CAPABILITIES, OrcaHub } from "./orca/hub";
@@ -92,7 +92,8 @@ class Controller {
 	#pending: PendingApproval | null = null;
 	#pendingLoading = false;
 	#pendingAgain = false;
-	#auto = new Map<string, string>();
+	/** Agent keys in the order the Auto board showed them last time (keeps jobs from jumping around). */
+	#boardOrder: string[] = [];
 	#shown = new Map<string, Agent | undefined>();
 	/** Last image sent per key, so pulses and polls only redraw keys that changed. */
 	#lastImage = new Map<string, string>();
@@ -237,7 +238,6 @@ class Controller {
 		this.#approvalKeys.delete(id);
 		this.#usageKeys.delete(id);
 		if (!this.#usageKeys.size) this.#stopUsage();
-		this.#auto.delete(id);
 		this.#shown.delete(id);
 		this.#lastImage.delete(id);
 		this.#render();
@@ -268,8 +268,10 @@ class Controller {
 			if (agent) pinnedKeys.add(agent.key);
 		}
 		const board = filterForBoard(agents, this.#settings.boardShow);
-		const assignment = assignAutoSlots(autoKeys.map((a) => a.id), board, this.#auto, pinnedKeys);
-		this.#auto = new Map([...assignment].flatMap(([slot, a]) => (a ? [[slot, a.key] as [string, string]] : [])));
+		// Fill Auto keys in reading order with no gaps.
+		const ordered = orderBoard(board, this.#boardOrder, pinnedKeys);
+		this.#boardOrder = ordered.map((a) => a.key);
+		const assignment = new Map(autoKeys.map((action, i) => [action.id, ordered[i]] as [string, Agent | undefined]));
 		for (const [slot, agent] of assignment) shown.set(slot, agent);
 		const boardEmpty = ![...assignment.values()].some(Boolean);
 		this.#shown = shown;

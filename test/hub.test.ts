@@ -91,7 +91,7 @@ test("reveal switches worktree then tab on the agent's own host, for every windo
 		"worktree.activate": () => ({}),
 		"session.tabs.activate": () => ({}),
 	});
-	const hub = new OrcaHub(rpc);
+	const hub = new OrcaHub(rpc, { tabRetryMs: [] });
 	await hub.refresh(1_000_000);
 	rpc.calls.length = 0;
 	await hub.reveal(hub.agents[0]!);
@@ -107,4 +107,31 @@ test("stop clears agents", async () => {
 	await hub.refresh(1_000_000);
 	hub.stop();
 	assert.equal(hub.agents.length, 0);
+});
+
+test("reveal re-selects the tab after the desktop has switched, and a newer jump cancels it", async () => {
+	const rpc = fakeRpc({
+		"status.get": () => ({ capabilities: [] }),
+		"worktree.ps": () => ({ worktrees: [] }),
+		"session.tabs.listAll": () => ({ snapshots: [
+			{ worktree: "repo::/srv/a", tabs: [{ type: "agent-session", id: "agent-session:a", title: "a", sessionId: "a", agent: "claude", isActive: false, chatStatus: { state: "working", updatedAt: 1 } }] },
+			{ worktree: "repo::/srv/b", tabs: [{ type: "agent-session", id: "agent-session:b", title: "b", sessionId: "b", agent: "claude", isActive: false, chatStatus: { state: "working", updatedAt: 2 } }] },
+		] }),
+		"worktree.activate": () => ({}),
+		"session.tabs.activate": () => ({}),
+	});
+	const hub = new OrcaHub(rpc, { tabRetryMs: [20, 40] });
+	await hub.refresh(1_000_000);
+	const [first, second] = hub.agents;
+	rpc.calls.length = 0;
+	await hub.reveal(first!);
+	await new Promise((r) => setTimeout(r, 60));
+	const tabCalls = (key: string) => rpc.calls.filter((c) => c.method === "session.tabs.activate" && (c.params as { tabId: string }).tabId === key).length;
+	assert.equal(tabCalls(first!.tabId), 3); // immediately, then twice more
+	rpc.calls.length = 0;
+	await hub.reveal(first!);
+	await hub.reveal(second!); // a newer jump cancels the first one's repeats
+	await new Promise((r) => setTimeout(r, 60));
+	assert.equal(tabCalls(first!.tabId), 1);
+	assert.equal(tabCalls(second!.tabId), 3);
 });

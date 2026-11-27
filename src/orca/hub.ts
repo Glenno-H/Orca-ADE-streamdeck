@@ -24,6 +24,12 @@ export type Host = { hostId: string; label: string; executionHost?: string };
 
 export type HubOptions = {
 	pollMs?: number;
+	/**
+	 * After switching worktree, re-send "select this tab" at these delays (ms). The desktop only
+	 * hears tab changes for the worktree it is showing, and starts listening a moment after it
+	 * switches, so a single immediate request is usually lost.
+	 */
+	tabRetryMs?: readonly number[];
 	/** How often to re-read the host list. */
 	slowRefreshMs?: number;
 	/** Re-read worktree names and unread flags every this many polls (worktree.ps is heavier than the tab list). */
@@ -36,6 +42,8 @@ type HostState = { worktrees: Map<string, WorktreeInfo>; agents: Agent[]; error?
 export class OrcaHub {
 	readonly #rpc: Rpc;
 	readonly #pollMs: number;
+	readonly #tabRetryMs: readonly number[];
+	#revealSeq = 0;
 	readonly #slowMs: number;
 	readonly #worktreeEvery: number;
 	#round = 0;
@@ -52,6 +60,7 @@ export class OrcaHub {
 	constructor(rpc: Rpc, opts: HubOptions = {}) {
 		this.#rpc = rpc;
 		this.#pollMs = opts.pollMs ?? 1500;
+		this.#tabRetryMs = opts.tabRetryMs ?? [350, 1000, 2500];
 		this.#slowMs = opts.slowRefreshMs ?? 30_000;
 		this.#worktreeEvery = Math.max(1, opts.worktreeEvery ?? 2);
 		this.#log = opts.log ?? (() => {});
@@ -180,10 +189,21 @@ export class OrcaHub {
 	 * Raising the window itself is the caller's job (Windows only).
 	 */
 	async reveal(agent: Agent): Promise<void> {
+		const seq = ++this.#revealSeq;
 		const opts = { executionHost: this.#hosts.find((h) => h.hostId === agent.hostId)?.executionHost, timeoutMs: 8000 };
 		const worktree = `id:${agent.worktreeId}`;
+		const selectTab = () =>
+			this.#rpc.call("session.tabs.activate", { worktree, tabId: agent.tabId, ...(agent.leafId ? { leafId: agent.leafId } : {}), navigation: "all" }, opts);
 		await this.#rpc.call("worktree.activate", { worktree, navigation: "all" }, opts);
-		await this.#rpc.call("session.tabs.activate", { worktree, tabId: agent.tabId, ...(agent.leafId ? { leafId: agent.leafId } : {}), navigation: "all" }, opts);
+		await selectTab();
+		// Repeat once the desktop has had time to start listening to the new worktree's tabs. A newer
+		// jump cancels the rest, so pressing another key doesn't get pulled back here.
+		for (const delay of this.#tabRetryMs) {
+			setTimeout(() => {
+				if (seq !== this.#revealSeq) return;
+				selectTab().catch((err) => this.#log("debug", `tab re-select failed: ${message(err)}`));
+			}, delay);
+		}
 	}
 }
 

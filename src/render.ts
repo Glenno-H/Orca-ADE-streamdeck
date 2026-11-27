@@ -9,7 +9,8 @@ export const COLORS = {
 	done: "#2e8b57",
 	stopped: "#5a5f66",
 	deny: "#c0392b",
-	empty: "#1b1e22",
+	// Pure black: any grey glows on the backlit keys, so idle keys would look lit.
+	empty: "#000000",
 	offline: "#000000",
 	text: "#ffffff",
 	muted: "#c9ced6",
@@ -127,16 +128,19 @@ export function wrapName(name: string, width: number, lines: number): string[] {
 function largeAgentKeyImage(agent: Agent, dim: boolean): string {
 	const background = agentBackground(agent, dim);
 	const color = textColorOn(background);
-	// Bold glyphs average ~0.6em: 26 px fits ~8-9 characters a line, 22 px ~10.
+	// Bold glyphs average ~0.6em: 26 px fits ~8-9 characters a line, 21 px ~10.
 	const oneLine = wrapName(agent.worktreeName, 8, 1);
 	const fitsOne = oneLine.length === 1 && !oneLine[0]!.endsWith("…");
-	const lines = fitsOne ? oneLine : wrapName(agent.worktreeName, 9, 2);
-	const size = fitsOne ? 28 : 22;
-	const top = fitsOne ? 62 : lines.length === 1 ? 60 : 46;
-	const name = lines.map((line, i) => text(line, top + i * (size + 4), size, { color, weight: 800 })).join("");
+	const lines = fitsOne ? oneLine : wrapName(agent.worktreeName, 10, 2);
+	const size = fitsOne ? 26 : 20;
+	const top = fitsOne || lines.length === 1 ? 36 : 26;
+	const name = lines.map((line, i) => text(line, top + i * (size + 3), size, { color, weight: 800 })).join("");
+	// The chat's own title tells apart several chats in one worktree.
+	const title = fitLine(agent.title.replace(/\s+/g, " ").trim(), 16, 16);
+	const titleLine = text(title.text, 84, title.size, { color, weight: 700 });
 	const state = bigStateLabel(agent);
 	const band = `<rect x="0" y="100" width="${SIZE}" height="44" fill="#000000" fill-opacity="0.32"/>`;
-	return svgUrl(name + band + text(state, 132, state.length > 7 ? 22 : 25, { weight: 800 }), background);
+	return svgUrl(name + titleLine + band + text(state, 132, state.length > 7 ? 22 : 25, { weight: 800 }), background);
 }
 
 export function agentKeyImage(agent: Agent, dim = false, size: KeyTextSize = "large"): string {

@@ -10,13 +10,13 @@ and jump straight to them. Unofficial; not made by Stably.
 
 | Key | What it does |
 |---|---|
-| **Agent** | Shows one agent: worktree, title and state. Blue working, amber needs you, green finished (not looked at yet), grey checked or stopped. Press to jump to it in Orca. Set to **Auto** or **One worktree**. All Auto keys together form one live board: agents that need you first, then working ones. **Board shows** picks what fills it: waiting, working and finished-but-unchecked (default; a finished job drops off once you've looked at it in Orca, e.g. by pressing its key), only waiting on you, or everything. |
+| **Agent** | Shows one agent: worktree, title and state. Blue working, amber needs you, green finished (not looked at yet), grey checked or stopped. Press to jump to it in Orca. Set to **Auto** or **One worktree**. All Auto keys together form one live board with no gaps: agents that need you first, then the rest in a steady order; when a job leaves, the ones after it slide up. **Board shows** picks what fills it: waiting, working and finished-but-unchecked (default; a finished job drops off once you've looked at it in Orca, e.g. by pressing its key), only waiting on you, or everything. |
 | **Next Waiting** | Shows, big, how many agents are waiting on you; each press jumps to the next one. |
 | **Usage** | How much of your **Claude** or **Codex** limit is used (pick in its settings): the tightest of the 5-hour, weekly and Fable-weekly limits, and when it resets. Green under 70%, amber 70–89%, red 90%+. Read from the Orca app on this PC every minute, re-measured every 5 minutes; press to refresh now. |
 | **Show Orca** | Brings the Orca window to the front. |
 | **Approve** / **Deny** | Answer the permission request of the agent you **last jumped to from the deck** (its name is on the key). Approve allows once, never "always". Green/red while there's a request; dim otherwise. Before answering, the plugin re-checks that the same request is still waiting. Chat agents only for now. |
 
-**Key text** (any key's settings): **Large** (default) shows a big worktree name and a one-word state (YOUR GO, ALLOW?, WORKING, DONE, SEEN), with dark text on amber for contrast. **Detailed** is smaller and adds the chat title.
+**Key text** (any key's settings): **Large** (default) shows a big worktree name, one line of the chat's title (so two chats in one worktree are told apart) and a one-word state (YOUR GO, ALLOW?, WORKING, DONE, SEEN), with dark text on amber for contrast. **Detailed** is smaller and shows more of the chat title.
 
 ## How it connects
 
