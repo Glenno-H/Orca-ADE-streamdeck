@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.sdPlugin/bin
+*.sdPlugin/logs
+*.sdPlugin/imgs
+# Local captures of Orca data (client names, paths): never commit
+captures/
+*.sdPlugin/ui/sdpi-components.js
+*.sdPlugin/LICENSE.txt
+*.sdPlugin/NOTICE.md
