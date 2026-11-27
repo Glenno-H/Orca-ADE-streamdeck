@@ -9,7 +9,8 @@ export const COLORS = {
 	done: "#2e8b57",
 	stopped: "#5a5f66",
 	deny: "#c0392b",
-	empty: "#1b1e22",
+	// Pure black: any grey glows on the backlit keys, so idle keys would look lit.
+	empty: "#000000",
 	offline: "#000000",
 	text: "#ffffff",
 	muted: "#c9ced6",
