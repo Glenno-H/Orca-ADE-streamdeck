@@ -39,8 +39,8 @@ export function wrap(text: string, width: number, lines: number): string[] {
 	return out;
 }
 
-/** Bold text averages about 0.62em per character; keys are 144 px with a little margin. */
-const charsThatFit = (size: number) => Math.floor(134 / (size * 0.62));
+/** Bold text averages about 0.66em per character (wide fonts included); keys are 144 px with a little margin. */
+const charsThatFit = (size: number) => Math.floor(134 / (size * 0.66));
 
 /** Shrinks one line of text from `max` down to `min` px to fit the key, then cuts it with …. */
 export function fitLine(value: string, max: number, min: number): { text: string; size: number } {

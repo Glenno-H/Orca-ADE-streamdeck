@@ -1,9 +1,9 @@
-# Orca Deck
+# Orca ADE Plugin for Stream Deck
 
 A Stream Deck plugin for [Orca](https://onorca.dev): see which of your agents need you at a glance,
 and jump straight to them. Unofficial; not made by Stably.
 
-**Status: 0.5.** Pairing, live agent keys and jumping are confirmed working on Windows (26 Nov
+**Status: 0.6.** Pairing, live agent keys and jumping are confirmed working on Windows (26 Nov
 2026). Approve/Deny arrived in 0.2; the board filter in 0.3; large, easy-to-read keys in 0.4; the Usage key in 0.5.
 
 ## Keys

@@ -1,5 +1,5 @@
 // Builds the plugin's static images (PNG, from inline SVG) and copies the settings-page library.
-//   imgs/plugin/marketplace(.png, @2x)   288 / 576
+//   imgs/plugin/marketplace(.png, @2x)   256 / 512  (plugin icon in Stream Deck preferences)
 //   imgs/plugin/category-icon            28 / 56
 //   imgs/actions/<action>/icon           20 / 40
 //   imgs/actions/<action>/key            72 / 144
@@ -45,7 +45,7 @@ function pair(rel, body, size, background) {
 }
 
 // Plugin and category icons.
-pair("imgs/plugin/marketplace", mark(ACCENT), 288, KEY_BG);
+pair("imgs/plugin/marketplace", mark(ACCENT), 256, KEY_BG);
 pair("imgs/plugin/category-icon", mark("#ffffff"), 28);
 
 // Action list icons (white on transparent) and default key art.
